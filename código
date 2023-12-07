@@ -1,0 +1,322 @@
+import networkx as nx
+from datetime import datetime, timedelta
+import folium
+import webbrowser
+from tkinter import *
+
+
+idOrigem = ""
+idDestino = ""
+
+
+
+# Criando um grafo direcionado
+G = nx.DiGraph()
+
+# Adicionando as cidades como nós do grafo
+cidades = [
+    ("Curitiba/PR", (-25.4284, -49.2733)),
+    ("Londrina/PR", (-23.3045, -51.1696)),
+    ("Foz do Iguacu/PR", (-25.5163, -54.5854)),
+    ("Uniao da Vitoria/PR", (-26.2272, -51.0877)),
+    ("Joinville/SC", (-26.3035, -48.8487)),
+    ("Chapeco/SC", (-27.1006, -52.6152)),
+    ("Porto Alegre/RS", (-30.0346, -51.2177)),
+    ("Uruguaiana/RS", (-29.7614, -57.0862)),
+    ("Pelotas/RS", (-31.7711, -52.3426))
+]
+
+for cidade, coords in cidades:
+    G.add_node(cidade, pos=coords)
+
+# Adicionando as rotas e distâncias entre as cidades
+rotas = [
+    ("Curitiba/PR", "Londrina/PR", 383.7),
+    ("Curitiba/PR", "Foz do Iguacu/PR", 636),
+    ("Curitiba/PR", "Uniao da Vitoria/PR", 235),
+    ("Curitiba/PR", "Joinville/SC", 130),
+    ("Curitiba/PR", "Chapeco/SC", 488),
+    ("Curitiba/PR", "Porto Alegre/RS", 742),
+    ("Curitiba/PR", "Uruguaiana/RS", 1134),
+    ("Curitiba/PR", "Pelotas/RS", 992),
+    ("Londrina/PR", "Curitiba/PR", 383.7),
+    ("Londrina/PR", "Foz do Iguacu/PR", 513),
+    ("Londrina/PR", "Uniao da Vitoria/PR", 454),
+    ("Londrina/PR", "Joinville/SC", 513),
+    ("Londrina/PR", "Chapeco/SC", 631),
+    ("Londrina/PR", "Porto Alegre/RS", 1125),
+    ("Londrina/PR", "Uruguaiana/RS", 1318),
+    ("Londrina/PR", "Pelotas/RS", 1375),
+    ("Londrina/PR", "Foz do Iguacu/PR", 513),
+    ("Foz do Iguacu/PR", "Curitiba/PR", 636),
+    ("Foz do Iguacu/PR", "Londrina/PR", 513),
+    ("Foz do Iguacu/PR", "Uniao da Vitoria/PR", 547),
+    ("Foz do Iguacu/PR", "Joinville/SC", 764),
+    ("Foz do Iguacu/PR", "Chapeco/SC", 444),
+    ("Foz do Iguacu/PR", "Porto Alegre/RS", 903),
+    ("Foz do Iguacu/PR", "Uruguaiana/RS", 645),
+    ("Foz do Iguacu/PR", "Pelotas/RS", 1058),
+    ("Uniao da Vitoria/PR", "Curitiba/PR", 235),
+    ("Uniao da Vitoria/PR", "Londrina/PR", 454),
+    ("Uniao da Vitoria/PR", "Foz do Iguacu/PR", 545),
+    ("Uniao da Vitoria/PR", "Joinville/SC", 273),
+    ("Uniao da Vitoria/PR", "Chapeco/SC", 257),
+    ("Uniao da Vitoria/PR", "Porto Alegre/RS", 584),
+    ("Uniao da Vitoria/PR", "Uruguaiana/RS", 888),
+    ("Uniao da Vitoria/PR", "Pelotas/RS", 834),
+    ("Joinville/SC", "Curitiba/PR", 130),
+    ("Joinville/SC", "Londrina/PR", 513),
+    ("Joinville/SC", "Foz do Iguacu/PR", 513),
+    ("Joinville/SC", "Uniao da Vitoria/PR", 273),
+    ("Joinville/SC", "Chapeco/SC", 529),
+    ("Joinville/SC", "Porto Alegre/RS", 616),
+    ("Joinville/SC", "Uruguaiana/RS", 1235),
+    ("Joinville/SC", "Pelotas/RS", 866),
+    ("Chapeco/SC", "Curitiba/PR", 488),
+    ("Chapeco/SC", "Londrina/PR", 631),
+    ("Chapeco/SC", "Uniao da Vitoria/PR", 257),
+    ("Chapeco/SC", "Foz do Iguacu/PR", 444),
+    ("Chapeco/SC", "Joinville/SC", 529),
+    ("Chapeco/SC", "Porto Alegre/RS", 452),
+    ("Chapeco/SC", "Uruguaiana/RS", 728),
+    ("Chapeco/SC", "Pelotas/RS", 658),
+    ("Porto Alegre/RS", "Curitiba/PR", 742),
+    ("Porto Alegre/RS", "Londrina/PR", 1125),
+    ("Porto Alegre/RS", "Foz do Iguacu/PR", 903),
+    ("Porto Alegre/RS", "Uniao da Vitoria/PR", 584),
+    ("Porto Alegre/RS", "Joinville/SC", 616),
+    ("Porto Alegre/RS", "Chapeco/SC", 452),
+    ("Porto Alegre/RS", "Uruguaiana/RS", 632),
+    ("Porto Alegre/RS", "Pelotas/RS", 262),
+    ("Uruguaiana/RS", "Curitiba/PR", 1134),
+    ("Uruguaiana/RS", "Londrina/PR", 1318),
+    ("Uruguaiana/RS", "Foz do Iguacu/PR", 645),
+    ("Uruguaiana/RS", "Uniao da Vitoria/PR", 888),
+    ("Uruguaiana/RS", "Joinville/SC", 1235),
+    ("Uruguaiana/RS", "Chapeco/SC", 728),
+    ("Uruguaiana/RS", "Porto Alegre/RS", 632),
+    ("Uruguaiana/RS", "Pelotas/RS", 567),
+    ("Pelotas/RS", "Curitiba/PR", 992),
+    ("Pelotas/RS", "Londrina/PR", 1375),
+    ("Pelotas/RS", "Foz do Iguacu/PR", 1058),
+    ("Pelotas/RS", "Uniao da Vitoria/PR", 834),
+    ("Pelotas/RS", "Joinville/SC", 886),
+    ("Pelotas/RS", "Chapeco/SC", 658),
+    ("Pelotas/RS", "Porto Alegre/RS", 262),
+    ("Pelotas/RS", "Uruguaiana/RS", 567)
+    # Adicione as outras rotas aqui
+    ]
+
+for origem, destino, distancia in rotas:
+    G.add_edge(origem, destino, weight=distancia)
+
+
+# Função para converter os ids das cidades para seus nomes
+def converte_id():
+    idOrigem = nomeOrigem.get()
+    idDestino = nomeDestino.get()
+    global origem
+    global destino
+    origem = ""
+    destino = ""
+    if idOrigem == "1":
+        origem = "Curitiba/PR"
+    elif idOrigem == "2":
+        origem = "Londrina/PR"
+    elif idOrigem == "3":
+        origem = "Foz do Iguacu/PR"
+    elif idOrigem == "4":
+        origem = "Uniao da Vitoria/PR"
+    elif idOrigem == "5":
+        origem = "Joinville/SC"
+    elif idOrigem == "6":
+        origem = "Chapeco/SC"
+    elif idOrigem == "7":
+        origem = "Porto Alegre/RS"
+    elif idOrigem == "8":
+        origem = "Uruguaiana/RS"
+    elif idOrigem == "9":
+        origem = "Pelotas/RS"
+    
+    if idDestino == "1":
+        destino = "Curitiba/PR"
+    elif idDestino == "2":
+        destino = "Londrina/PR"
+    elif idDestino == "3":
+        destino = "Foz do Iguacu/PR"
+    elif idDestino == "4":
+        destino = "Uniao da Vitoria/PR"
+    elif idDestino == "5":
+        destino = "Joinville/SC"
+    elif idDestino == "6":
+        destino = "Chapeco/SC"
+    elif idDestino == "7":
+        destino = "Porto Alegre/RS"
+    elif idDestino == "8":
+        destino = "Uruguaiana/RS"
+    elif idDestino == "9":
+        destino = "Pelotas/RS"
+    return (origem, destino)
+
+
+
+
+# Função para calcular o caminho mais curto
+def menor_caminho(origem, destino):
+    return nx.shortest_path(G, origem, destino, weight='weight')
+
+#Função para correção e verificação das condições para o caminho percorrido
+def verifica_condicao(caminho):
+    if "Foz do Iguacu/PR" in caminho and "Uniao da Vitoria/PR" not in caminho:
+        index = caminho.index("Foz do Iguacu/PR")
+        if index == 0:
+            caminho.insert(1, "Uniao da Vitoria/PR")
+        else:
+            caminho.insert(index, "Uniao da Vitoria/PR")
+    elif "Uniao da Vitoria/PR" in caminho and "Foz do Iguacu/PR" not in caminho:
+        index = caminho.index("Uniao da Vitoria/PR")
+        if index == 0:
+            caminho.insert(1, "Foz do Iguacu/PR")
+        else:
+            caminho.insert(index, "Foz do Iguacu/PR")
+    elif "Joinville/SC" in caminho and "Chapeco/SC" not in caminho:
+        index = caminho.index("Joinville/SC")
+        if index == 0:
+            caminho.insert(1, "Chapeco/SC")
+        else:
+            caminho.insert(index, "Chapeco/SC")
+    elif "Chapeco/SC" in caminho and "Joinville/SC" not in caminho:
+        index = caminho.index("Chapeco/SC")
+        if index == 0:
+            caminho.insert(1, "Joinville/SC")
+        else:
+            caminho.insert(index, "Joinville/SC")
+
+
+# Função para calcular o custo de transporte
+def custo_transporte(caminho):
+    custo = sum(G[caminho[i]][caminho[i + 1]]['weight'] * 20 for i in range(len(caminho) - 1))
+    custo = float(custo)
+    return custo
+
+
+# Função para calcular a distancia percorrida
+def distancia_total(caminho):
+    dist_total = sum(G[caminho[i]][caminho[i + 1]]['weight'] for i in range(len(caminho) - 1))
+    return dist_total
+
+
+# Função para calcular a estimativa de tempo
+def estimativa_tempo(distancia):
+    tempo_em_horas = distancia / 20
+    return tempo_em_horas
+
+
+# Função para calcular a data e hora de chegada
+def data_hora_chegada(origem, destino):
+    # Obtendo a estimativa de tempo em horas
+    caminho = menor_caminho(origem, destino)
+    distancia = distancia_total(caminho)
+    tempo_estimado = estimativa_tempo(distancia)
+
+    # Considerando a data e hora atuais como partida
+    data_partida = datetime.now()
+
+    # Calculando a data e hora de chegada
+    tempo_viagem = timedelta(hours=tempo_estimado)
+    data_chegada = data_partida + tempo_viagem
+
+    return data_chegada
+
+
+# Função para criar o mapa do caminho percorrido
+def mapa_caminho(caminho):
+    mapa = folium.Map(location=[-25.4284, -49.2733], zoom_start=6)  # Define a localização e o zoom inicial do mapa
+
+    # Adiciona marcadores para cada cidade no caminho
+    for cidade in caminho:
+        coords = G.nodes[cidade]['pos']
+        folium.Marker(location=coords, popup=cidade).add_to(mapa)
+
+    # Adiciona linhas para representar o caminho percorrido
+    coordenadas_caminho = [G.nodes[cidade]['pos'] for cidade in caminho]
+    folium.PolyLine(locations=coordenadas_caminho, color='blue', weight=5, opacity=0.7).add_to(mapa)
+
+    return mapa
+
+
+# Exemplo de uso:
+
+def mostrar_resultado():
+    caminho = menor_caminho(origem, destino)
+    verifica_condicao(caminho)
+    custo = custo_transporte(caminho)
+    distancia = distancia_total(caminho)
+    tempo_estimado = estimativa_tempo(distancia)
+    data_chegada = data_hora_chegada(origem, destino)
+    mapa = mapa_caminho(caminho)
+    nome_arquivo = "caminho_percorrido.html"
+    mapa.save(nome_arquivo)
+    webbrowser.open_new_tab(nome_arquivo)
+    texto = f"Menor caminho: {caminho}\nCusto de trasnporte: R$ {custo}\nDistância total percorrida: {distancia} km\nO tempo estimado é de: {tempo_estimado} horas\nData e hora de chegada estimada: {data_chegada}"
+    mensagem["text"] = texto
+
+
+# Interface
+master = Tk()
+master.title("Calcule a viagem")
+fontePadrao = ("Arial", "10")
+primeiroContainer = Frame(master)
+primeiroContainer["pady"] = 10
+primeiroContainer["padx"] = 20
+primeiroContainer.pack()
+segundoContainer = Frame(master)
+segundoContainer["padx"] = 20
+segundoContainer.pack()
+terceiroContainer = Frame(master)
+terceiroContainer["padx"] = 20
+terceiroContainer.pack()
+quartoContainer = Frame(master)
+quartoContainer["pady"] = 20
+quartoContainer.pack()
+quintoContainer = Frame(master)
+quintoContainer["pady"] = 20
+quintoContainer.pack()
+sextoContainer = Frame(master)
+sextoContainer["pady"] = 20
+sextoContainer.pack()
+setimoContainer = Frame(master)
+setimoContainer["pady"] = 20
+setimoContainer.pack()
+titulo = Label(primeiroContainer, text="Insira a cidade de origem e a cidade de destino: (Use os números)")
+titulo["font"] = ("Arial", "10", "bold")
+titulo.pack()
+nomeCidades = Label(segundoContainer,text="1 - Curitiba/PR; \n2 - Londrina/PR; \n3 - Foz do Iguacu/PR; \n4 - Uniao da Vitoria/PR; \n5 - Joinville/SC; \n6 - Chapeco/SC; \n7 - Porto Alegre/RS; \n8 - Uruguaiana/RS; \n9 - Pelotas/RS.", font=fontePadrao)
+nomeCidades.pack()
+nomeOrigem = Label(terceiroContainer, text="Origem:", font=fontePadrao)
+nomeOrigem.pack(side=LEFT)
+nomeOrigem = Entry(terceiroContainer)
+nomeOrigem["width"] = 30
+nomeOrigem["font"] = fontePadrao
+nomeOrigem.pack(side=LEFT)
+nomeDestino = Label(quartoContainer, text="Destino:", font=fontePadrao)
+nomeDestino.pack(side=LEFT)
+nomeDestino = Entry(quartoContainer)
+nomeDestino["width"] = 30
+nomeDestino["font"] = fontePadrao
+nomeDestino.pack(side=LEFT)
+informe = Button(quintoContainer, command=converte_id)
+informe["text"] = "Informe"
+informe["font"] = ("Calibri", "8")
+informe["width"] = 12
+informe.pack()
+mensagem = Label(quintoContainer, text="", font=fontePadrao)
+mensagem.pack()
+resultado = Button(sextoContainer, command=mostrar_resultado)
+resultado["text"] = "Mostrar resultado"
+resultado["font"] = ("Calibri", "8")
+resultado["width"] = 12
+resultado.pack()
+mensagem = Label(setimoContainer, text="", font=fontePadrao)
+mensagem.pack()
+master.mainloop()
